@@ -6,7 +6,7 @@ I originally created this so I can run a simple duckhunt mini game within a matt
 ## Requirements
 * DB backend implementing these functions (see examples for more information)
 ```
-getTopList(type) - returns a promise map of ids and scores [ id0 : score1, id1: score2] SORTED by highest score
+getTopList(type, uniqueID) - returns a promise map of ids and scores [ id0 : score1, id1: score2] SORTED by highest score. You can provide a uniqueID to filter down or leave it empty `""` to get all.
 getCooldown(uniqueID) - returns a promise time in ms since epoch
 setCooldown(uniqueID, currentTime)  - set cooldown of a id given a time
 increaseScore(type, uniqueID) - increase the score by 1 for type on a given id
