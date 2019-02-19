@@ -1,5 +1,5 @@
 # http-post-duckhunt
-This is a simple javascript implementation of the duck hunt game you might have grown to love from old IRC bots.
+This is a simple NodeJS implementation of the duck hunt game you might have grown to love from old IRC bots.
 
 I originally created this so I can run a simple duckhunt mini game within a mattermost instance through post commands but I have done my best to generalize it so you can hook this game up to any time of host (albeit it javascript)
 
