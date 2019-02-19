@@ -39,25 +39,21 @@ db.defaults({ "bang" : [],
   .write();
 
 var getTopList = function(type, uniqueID) {
-  var topListMap = {};
   return new Promise(function(resolve, reject) { 
       var match;
-      
       if(uniqueID) {
         match = db.get(type)
                     .filter({"id": uniqueID})
+                    .sortBy("score")
                     .value();
       } else {
         match = db.get(type)
+                    .sortBy("score")
                     .value();
       }
-      console.log("zzz: " + match.length);
       if(Array.isArray(match) && match.length) {
-        topListMap = db.get(type)
-          .sortBy("score")
-          .value();
         //sortBy sorts in ascending order. We want it descending
-        resolve(topListMap.reverse());
+        resolve(match.reverse());
       } else {
         reject("No type" + type);
       }
