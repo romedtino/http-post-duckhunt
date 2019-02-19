@@ -1,0 +1,20 @@
+{
+  "bang": [
+    {
+      "id": "romedtino",
+      "score": 5
+    }
+  ],
+  "bef": [
+    {
+      "id": "romedtino",
+      "score": 18
+    }
+  ],
+  "cooldown": [
+    {
+      "id": "duckCDromedtino",
+      "cd": 1550559269222
+    }
+  ]
+}

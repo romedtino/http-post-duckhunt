@@ -4,7 +4,8 @@
 // It's deliberately placed in the `.data` directory which doesn't get copied if someone remixes the project.
 var low = require('lowdb')
 var FileSync = require('lowdb/adapters/FileSync')
-var adapter = new FileSync('.data/duckhunt_lowdb.json')
+var isWin = process.platform === "win32";
+var adapter = new FileSync(isWin ? 'data/duckhunt_lowdb.json' :'.data/duckhunt_lowdb.json')
 var db = low(adapter)
 
 /**
@@ -34,12 +35,24 @@ var db = low(adapter)
 db.defaults({ "bang" : [],
     "bef": [],
     "cooldown": []
-  });
+  })
+  .write();
 
-var getTopList = function(type) {
+var getTopList = function(type, uniqueID) {
   var topListMap = {};
   return new Promise(function(resolve, reject) { 
-      if(db.has(type)) {
+      var match;
+      
+      if(uniqueID) {
+        match = db.get(type)
+                    .filter({"id": uniqueID})
+                    .value();
+      } else {
+        match = db.get(type)
+                    .value();
+      }
+      console.log("zzz: " + match.length);
+      if(Array.isArray(match) && match.length) {
         topListMap = db.get(type)
           .sortBy("score")
           .value();
@@ -61,7 +74,7 @@ var getCooldown = function(uniqueID) {
           return resolve(cdEntry.cd);
       });
     
-      reject("No uniqueID with cooldown specified.");
+      resolve(null);
   });
 }
 
@@ -85,7 +98,9 @@ var increaseScore = function(type, uniqueID) {
   var match = db.get(type)
                .filter({"id": uniqueID})
                .value();
-  if(Array.isArray(match) || match.length) {
+  
+  
+  if(Array.isArray(match) && match.length) {
       //id already exists, update value      
       var origScore = match[0].score;
       var newScore = origScore + 1;
@@ -100,7 +115,6 @@ var increaseScore = function(type, uniqueID) {
         .push({"id": uniqueID, "score": 1})
         .write();
     }
-
 }
 
 var getScore = function(type, uniqueID) {
@@ -109,7 +123,7 @@ var getScore = function(type, uniqueID) {
         .filter({"id": uniqueID})
         .value();
     
-      if(Array.isArray(idList) || idList.length)
+      if(Array.isArray(idList) && idList.length)
       {
         //id exists
         return resolve(idList[0].score);
