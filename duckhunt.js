@@ -183,24 +183,27 @@ function lookUpKills(uniqueID)
 function lookUpTable(uniqueID, type)
 {
   var isBang = type.indexOf('bang') > -1;
-  var initMessage = (isBang) ? ", Here are people who hate dem ducks - " :
-                                                    ", Here are people with duck faced friends - ";
-  var message = "@" + uniqueID + initMessage;
+  var message = (isBang) ? "Here are people who hate dem ducks - " :
+                                                    "Here are people with duck faced friends - ";
+  if(uniqueID) {
+    message += " (filter: @" + uniqueID + ") ";
+  }
+                                                    
   dbGeneric.getTopList(type, uniqueID)
   .then(function(toplist) {
       for(var i=0;i<toplist.length;i++)
       {
-        message += toplist[i].id + " - " + toplist[i].score;
+        message += toplist[i].id + "(" + toplist[i].score + ")";
         if( i < toplist.length - 1)
         {
           message += ", "
         }
       }
-
       callback(message);
   })
   .catch(function(error) {
-      message += "Nobody yet...";
+      message += "None yet...";
+      console.log(error);
       callback(message);
   });
 }
