@@ -11,7 +11,7 @@ const duck_noise = ["QUACK!",
                   "quack!"
                 ]
 
-const miss_bang_noduck = "There is no duck. What are you shooting at?";                
+const miss_bang_noduck = " there is no duck. What are you shooting at?";                
 const miss_bang = [ "WHOOSH! You missed the duck completely!", 
                   "Your gun jammed!", 
                   "Better luck next time.", 
@@ -44,7 +44,7 @@ let duckReleaseTime = 0;
 
 let duckHuntTimer;
 
-let callback;
+var callback = function () { console.log("Implement me"); };
 
 /**
 ** requires these functions to be implemented which return Promises: 
@@ -74,21 +74,21 @@ function createDuck()
 }
 
 //Handle when we get a bang
-function handleBang(unique_id)
+function handleBang(uniqueID)
 {
-  handleDuckCommand(unique_id, 'bang');
+  handleDuckCommand(uniqueID, 'bang');
 }
 
-function handleDuckCommand(unique_id, type)
+function handleDuckCommand(uniqueID, type)
 {
   var isBang = type.indexOf('bang') > -1;
-  var message = (isBang) ? miss_bang_noduck : miss_friend_noduck;
+  var message = "@" + uniqueID + " " + ((isBang) ? miss_bang_noduck : miss_friend_noduck);
   if(Boolean(isDuckLoose))
   {
    // 60% chance of hit
     var date = new Date();
     
-    dbGeneric.getCooldown("duckCD" + unique_id)
+    dbGeneric.getCooldown("duckCD" + uniqueID)
     .then(function(dbCooldown) {
         var cooldown = (date.getTime() - dbCooldown) / 1000;
 
@@ -99,21 +99,21 @@ function handleDuckCommand(unique_id, type)
             isDuckLoose = false;
             var seconds = (date.getTime() - duckReleaseTime) / 1000;
             
-            dbGeneric.increaseScore(type, unique_id);
+            dbGeneric.increaseScore(type, uniqueID);
             
-            dbGeneric.getScore(type, unique_id)
+            dbGeneric.getScore(type, uniqueID)
             .then(function(user_score) {
                 var score = user_score.toString();
 
                 if(isBang)
                 {
-                  message = "@" + unique_id 
+                  message = "@" + uniqueID 
                             + " shot a duck in **" +  seconds + "** seconds! You have shot " 
                             + score +" ducks.";
                 }
                 else
                 {          
-                  message = "@" + unique_id
+                  message = "@" + uniqueID
                             + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
                             + score +" ducks.";          
                 }
@@ -124,7 +124,7 @@ function handleDuckCommand(unique_id, type)
                 callback(message);
             })
             .catch(function(error) {
-                callback("Couldn't find a score for " + unique_id);
+                callback("Couldn't find a score for " + uniqueID + "\n" + error);
             });
 
           }
@@ -132,12 +132,12 @@ function handleDuckCommand(unique_id, type)
           {
             // 30% chance of miss
             //Put user in timeout
-            dbGeneric.setCooldown("duckCD" + unique_id, date.getTime());
+            dbGeneric.setCooldown("duckCD" + uniqueID, date.getTime());
 
             //Reply to user
             var typeChoice = (isBang) ? 
                              randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
-            message = "@" + unique_id + " - ";
+            message = "@" + uniqueID + " - ";
             message += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice]
             callback(message);
           }
@@ -150,6 +150,7 @@ function handleDuckCommand(unique_id, type)
         }
     })
     .catch(function(error) {
+      callback("Error handling " + type);
     });
       
   }
@@ -162,41 +163,37 @@ function handleDuckCommand(unique_id, type)
 }
 
 //Handle when we get a friend
-function handleFriend(unique_id)
+function handleFriend(uniqueID)
 {
-  handleDuckCommand(unique_id, 'bef');
+  handleDuckCommand(uniqueID, 'bef');
 }
 
 //Print out top friend list
-function lookUpFriends(unique_id)
+function lookUpFriends(uniqueID)
 {
-  lookUpTable(unique_id, 'bef');
+  lookUpTable(uniqueID, 'bef');
 }
 
 //Print out top kill list
-function lookUpKills(unique_id)
+function lookUpKills(uniqueID)
 {
-  lookUpTable(unique_id, 'bang');
+  lookUpTable(uniqueID, 'bang');
 }
 
-function lookUpTable(unique_id, type)
+function lookUpTable(uniqueID, type)
 {
   var isBang = type.indexOf('bang') > -1;
   var initMessage = (isBang) ? ", Here are people who hate dem ducks - " :
                                                     ", Here are people with duck faced friends - ";
-  var message = "@" + unique_id + initMessage;
-  dbGeneric.getTopList(type)
+  var message = "@" + uniqueID + initMessage;
+  dbGeneric.getTopList(type, uniqueID)
   .then(function(toplist) {
-
-      for(var key in toplist)
+      for(var i=0;i<toplist.length;i++)
       {
-        for(var i=0;i<toplist.length;i++)
+        message += toplist[i].id + " - " + toplist[i].score;
+        if( i < toplist.length - 1)
         {
-          message += key + " - " + toplist[key];
-          if( i < toplist.length)
-          {
-            message += ", "
-          }
+          message += ", "
         }
       }
 
@@ -210,11 +207,13 @@ function lookUpTable(unique_id, type)
 
 function startDuckHunt(cb, db)
 {  
-  //Between 8 min to an hour
-  var time = randRange(480000, 3600000);
-  duckHuntTimer = setTimeout(createDuck(), time);
   callback = cb;
   dbGeneric = db;
+  
+  //Between 8 min to an hour
+  var time = randRange(480000, 3600000);
+  duckHuntTimer = setTimeout(createDuck, time);
+
 }
 
 function stopDuckHunt()
