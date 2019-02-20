@@ -3,18 +3,38 @@
     {
       "id": "romedtino",
       "score": 5
+    },
+    {
+      "id": "bruce",
+      "score": 10
     }
   ],
   "bef": [
     {
       "id": "romedtino",
       "score": 18
+    },
+    {
+      "id": "bruce",
+      "score": 19
+    },
+    {
+      "id": "tony",
+      "score": 9
     }
   ],
   "cooldown": [
     {
       "id": "duckCDromedtino",
       "cd": 1550559269222
+    },
+    {
+      "id": "duckCDbruce",
+      "cd": 1550636454893
+    },
+    {
+      "id": "duckCDtony",
+      "cd": 1550560511483
     }
   ]
 }

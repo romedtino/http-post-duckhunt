@@ -7,7 +7,7 @@ const duck = ["\_o< ",
             "\_\u00f3< "
           ]
 const duck_noise = ["QUACK!", 
-                  "FLAP FLAP!", 
+                  "FLAP FLAP!",
                   "quack!"
                 ]
 
@@ -35,33 +35,61 @@ const commandList = "\nAll duckhunt related commands:\n" +
                   "`/bef`  - Befriend a duck and become best of buddies\n" + 
                   "`/friends` - Look up the people who have the most friends as ducks\n" + 
                   "`/kills` - Look up the people who just straight up hate ducks";                        
-                    
-const COOLDOWN_IN_SEC = 7;      
-
-let isDuckLoose = false;                                  
-
-let duckReleaseTime = 0; 
-
-let duckHuntTimer;
-
-var callback = function () { console.log("Implement me"); };
 
 /**
-** requires these functions to be implemented which return Promises: 
-*  getTopList(type) - returns map of ids and scores [ id0 : score1, id1: score2] SORTED by highest score
-*  getCooldown(uniqueID) - returns time in ms since epoch
-*  setCooldown(uniqueID, currentTime)  - set cooldown of a id given a time
-*  increaseScore(type, uniqueID) - increase the score by 1 for type on a given id
-*  getScore(type, uniqueID) - Get the id score by type
+* Cooldown for people who spam right after missing a shot (seconds)
+*/
+const COOLDOWN_IN_SEC = 7;
+
+/**
+* Flag to signify if there's an entity available to capture
+*/
+let isDuckLoose = false;
+
+/**
+* Time in epoch we released an entity
+*/
+let duckReleaseTime = 0;
+
+/**
+* Holds the timeout reference for spawning a duck
+*/
+let duckHuntTimer;
+
+/**
+* Flag to check if the hunt is running
+*/
+let isRunningFlag = false;
+
+/**
+* Callback function called when the duckhunt game posts information
+*/
+var callback = function () { 
+  console.log("Implement me"); 
+};
+
+/**
+* Callback to a generic database to store all the information of the game to.
+* Requires these functions to be implemented which return Promises: 
+* getTopList(type) - returns map of ids and scores [ id0 : score1, id1: score2] SORTED by highest score
+* getCooldown(uniqueID) - returns time in ms since epoch
+* setCooldown(uniqueID, currentTime)  - set cooldown of a id given a time
+* increaseScore(type, uniqueID) - increase the score by 1 for type on a given id
+* getScore(type, uniqueID) - Get the id score by type
 */
 let dbGeneric;
 
+/**
+* Basic random range function
+*/
 function randRange(min, max)
 {
   return Math.floor(Math.random() * (max - min) + min); 
 }
               
-//Create a duck to send to overdank                
+/**
+* Spawn a duck and pass the information to callback
+*/           
 function createDuck()
 {
   isDuckLoose = true;
@@ -71,12 +99,6 @@ function createDuck()
   var duckNoiseChoice = randRange(0, duck_noise.length);
   var duckMessage = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
   callback(duckMessage);
-}
-
-//Handle when we get a bang
-function handleBang(uniqueID)
-{
-  handleDuckCommand(uniqueID, 'bang');
 }
 
 function handleDuckCommand(uniqueID, type)
@@ -162,10 +184,16 @@ function handleDuckCommand(uniqueID, type)
 
 }
 
+//Handle when we get a bang
+function handleBang(uniqueID)
+{
+  return handleDuckCommand(uniqueID, 'bang');
+}
+
 //Handle when we get a friend
 function handleFriend(uniqueID)
 {
-  handleDuckCommand(uniqueID, 'bef');
+  return handleDuckCommand(uniqueID, 'bef');
 }
 
 //Print out top friend list
@@ -203,7 +231,6 @@ function lookUpTable(uniqueID, type)
   })
   .catch(function(error) {
       message += "None yet...";
-      console.log(error);
       callback(message);
   });
 }
@@ -215,13 +242,18 @@ function startDuckHunt(cb, db)
   
   //Between 8 min to an hour
   var time = randRange(480000, 3600000);
+  isRunningFlag = true;
   duckHuntTimer = setTimeout(createDuck, time);
-
+  
 }
 
-function stopDuckHunt()
-{
-  clearTimeout(duckHuntTimer);
+function stopDuckHunt() {
+  isRunningFlag = false;
+  clearTimeout(duckHuntTimer);  
+}
+
+function isRunning() {
+  return isRunningFlag;
 }
 
 module.exports.handleBang = handleBang;
@@ -232,3 +264,4 @@ module.exports.lookUpFriends = lookUpFriends;
 module.exports.lookUpKills = lookUpKills;
 module.exports.commandList = commandList;
 module.exports.instructions = instructions;
+module.exports.isRunning = isRunning;
