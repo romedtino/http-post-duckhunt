@@ -101,10 +101,62 @@ function createDuck()
   callback(duckMessage);
 }
 
+function assessHitOrMiss(uniqueID, type, date) {
+  var isBang = type.indexOf('bang') > -1;
+  
+  if(randRange(0, 100) > 30)
+  { 
+    isDuckLoose = false;
+    var seconds = (date.getTime() - duckReleaseTime) / 1000;
+    
+    dbGeneric.increaseScore(type, uniqueID);
+    
+    dbGeneric.getScore(type, uniqueID)
+    .then(function(user_score) {
+        var score = user_score.toString();
+
+        if(isBang)
+        {
+          message = "@" + uniqueID 
+                    + " shot a duck in **" +  seconds + "** seconds! You have shot " 
+                    + score +" ducks.";
+        }
+        else
+        {          
+          message = "@" + uniqueID
+                    + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
+                    + score +" ducks.";          
+        }
+
+        //Reset duck status
+        startDuckHunt(callback, dbGeneric);
+
+        callback(message);
+    })
+    .catch(function(error) {
+        callback("Couldn't find a score for " + uniqueID + "\n" + error);
+    });
+
+  }
+  else
+  {
+    // 30% chance of miss
+    //Put user in timeout
+    dbGeneric.setCooldown("duckCD" + uniqueID, date.getTime());
+
+    //Reply to user
+    var typeChoice = (isBang) ? 
+                     randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
+    message = "@" + uniqueID + " - ";
+    message += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
+    callback(message);
+    
+  }
+}
+
 function handleDuckCommand(uniqueID, type)
 {
-  var isBang = type.indexOf('bang') > -1;
-  var message = "@" + uniqueID + " " + ((isBang) ? miss_bang_noduck : miss_friend_noduck);
+  var message = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
   if(Boolean(isDuckLoose))
   {
    // 60% chance of hit
@@ -116,53 +168,7 @@ function handleDuckCommand(uniqueID, type)
 
         if(cooldown > COOLDOWN_IN_SEC || dbCooldown == null)
         {
-          if(randRange(0, 100) > 30)
-          { 
-            isDuckLoose = false;
-            var seconds = (date.getTime() - duckReleaseTime) / 1000;
-            
-            dbGeneric.increaseScore(type, uniqueID);
-            
-            dbGeneric.getScore(type, uniqueID)
-            .then(function(user_score) {
-                var score = user_score.toString();
-
-                if(isBang)
-                {
-                  message = "@" + uniqueID 
-                            + " shot a duck in **" +  seconds + "** seconds! You have shot " 
-                            + score +" ducks.";
-                }
-                else
-                {          
-                  message = "@" + uniqueID
-                            + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
-                            + score +" ducks.";          
-                }
-
-                //Reset duck status
-                startDuckHunt(callback, dbGeneric);
-
-                callback(message);
-            })
-            .catch(function(error) {
-                callback("Couldn't find a score for " + uniqueID + "\n" + error);
-            });
-
-          }
-          else
-          {
-            // 30% chance of miss
-            //Put user in timeout
-            dbGeneric.setCooldown("duckCD" + uniqueID, date.getTime());
-
-            //Reply to user
-            var typeChoice = (isBang) ? 
-                             randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
-            message = "@" + uniqueID + " - ";
-            message += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice]
-            callback(message);
-          }
+          assessHitOrMiss(uniqueID, type, date);
         }
         else
         {
