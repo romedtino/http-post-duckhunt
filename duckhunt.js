@@ -168,7 +168,7 @@ function handleDuckCommand(uniqueID, type)
 
         if(cooldown > COOLDOWN_IN_SEC || dbCooldown == null)
         {
-          assessHitOrMiss(uniqueID, type, date);
+          return assessHitOrMiss(uniqueID, type, date);
         }
         else
         {
