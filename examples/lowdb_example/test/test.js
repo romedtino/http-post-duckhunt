@@ -40,15 +40,8 @@ describe('Duckhunt Test', function () {
       let onFriendRecv = function(message) {
         let friendKeys = duckhunt.__get__('miss_friend');
         friendKeys.push("You're friends with");
-        console.log("onFriendRecv RECEIVER: " + message);
-        let entryFound = false;
-        for(let i=0;i<friendKeys.length;i++) {
-          if(message.includes(friendKeys[i])) {
-            entryFound = true;
-            break;
-          }
-        }
-        expect(entryFound).to.be.true;
+        console.log("onFriendRecv RECEIVER: " + message);       
+        expect(friendKeys.filter(entry => message.includes(entry))).to.have.lengthOf(1);
         stopHuntTest();
         done();
       }
@@ -68,14 +61,7 @@ describe('Duckhunt Test', function () {
         let bangKeys = duckhunt.__get__('miss_bang');
         bangKeys.push("You have shot");
         console.log("onBangRecv RECEIVER: " + message);
-        let entryFound = false;
-        for(let i=0;i<bangKeys.length;i++) {
-          if(message.includes(bangKeys[i])) {
-            entryFound = true;
-            break;
-          }
-        }
-        expect(entryFound).to.be.true;
+        expect(bangKeys.filter(entry => message.includes(entry))).to.have.lengthOf(1);
         stopHuntTest();
         done();
       }
