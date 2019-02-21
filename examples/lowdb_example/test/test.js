@@ -76,17 +76,26 @@ describe('Duckhunt Test', function () {
       
     });
     
-
-    /**it('should try and befriend an entity', function () {
-      duckhunt.handleFriend("tony");
-    });
-    it('should return a list of killers', function () {
+    it('should return a list of killers', function (done) {
+      let onListRecv = function(message) {
+        console.log("onListRecv RECEIVER: " + message);
+        expect(message.includes('Here are people who hate dem ducks')).to.be.true;
+        done();
+      }
+      duckhunt.__set__('callback', onListRecv);
       duckhunt.lookUpKills("");
     });
-    it('should return a list of friends', function () {
+    it('should return a list of friends', function (done) {
+      let onListRecv = function(message) {
+        console.log("onListRecv RECEIVER: " + message);
+        expect(message.includes('Here are people with duck faced friends')).to.be.true;
+        expect(message.includes(',')).to.be.false;
+        done();
+      }
+      duckhunt.__set__('callback', onListRecv);
       duckhunt.lookUpFriends("bruce");
     });
-    **/
+    
   });
   
 });
