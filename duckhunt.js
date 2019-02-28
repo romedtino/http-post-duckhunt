@@ -69,9 +69,11 @@ var callback = function () {
   console.log("Implement me"); 
 };
 
+var duck_ascii = no_duck;
+
 const callbackResult = { "uniqueID" : "",
                        "success" : false,
-                       "duckMessage" : "",
+                       "duckMessage" : duck_ascii,
                        "chat" : "",
                        "userOnly" : ""
     };
@@ -105,7 +107,8 @@ function createDuck() {
   var duckChoice = randRange(0, duck.length);
   var duckNoiseChoice = randRange(0, duck_noise.length);
   var fullMessage = callbackResult;
-  fullMessage.duckMessage = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];;
+  duck_ascii = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
+  fullMessage.duckMessage = duck_ascii;
   callback(fullMessage);
 }
 
@@ -114,6 +117,7 @@ function assessHitOrMiss(uniqueID, type, date) {
   
   var fullMessage = callbackResult;
   fullMessage.uniqueID = uniqueID;
+  fullMessage.duckMessage = duck_ascii;
   
   if(randRange(0, 100) > 30) { 
     isDuckLoose = false;
@@ -126,21 +130,22 @@ function assessHitOrMiss(uniqueID, type, date) {
         var score = user_score.toString();
 
         if(isBang) {
-          message = "@" + uniqueID 
+          fullMessage.chat = "@" + uniqueID 
                     + " shot a duck in **" +  seconds + "** seconds! You have shot " 
                     + score +" ducks.";
         } else {          
-          message = "@" + uniqueID
+          fullMessage.chat = "@" + uniqueID
                     + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
                     + score +" ducks.";          
         }
 
         //Reset duck status
+        duck_ascii = no_duck;
         startDuckHunt(callback, dbGeneric);
         
-        fullMessage.chat = message;
         fullMessage.success = true;
-        fullMessage.duckMessage = no_duck;
+        fullMessage.duckMessage = duck_ascii;
+      
         
         callback(fullMessage);
     })
@@ -159,11 +164,9 @@ function assessHitOrMiss(uniqueID, type, date) {
     //Reply to user
     var typeChoice = (isBang) ? 
                      randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
-    message = "@" + uniqueID + " - ";
-    message += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
-    
-    fullMessage.chat = message;
-    
+    fullMessage.chat = "@" + uniqueID + " - ";
+    fullMessage.chat += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
+        
     callback(fullMessage);
     
   }
@@ -173,6 +176,7 @@ function handleDuckCommand(uniqueID, type)
 {  
   var fullMessage = callbackResult;
   fullMessage.uniqueID = uniqueID;
+  fullMessage.duckMessage = duck_ascii;
   
   if(Boolean(isDuckLoose))
   {
@@ -189,9 +193,8 @@ function handleDuckCommand(uniqueID, type)
         }
         else
         {
-          message = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
+          fullMessage.userOnly = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
                     + " seconds.";
-          fullMessage.userOnly = message;
           callback(fullMessage);
         }
     })
@@ -204,9 +207,8 @@ function handleDuckCommand(uniqueID, type)
   else
   { 
     // There's no duck to [type]!
-    var message = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
-    fullMessage.userOnly = message;
-    callback(message);
+    fullMessage.userOnly = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
+    callback(fullMessage);
   }
 
 }
@@ -269,7 +271,7 @@ function startDuckHunt(cb, db)
   callback = cb;
   dbGeneric = db;
   
-  //Between 8 min to an hour
+  //Between 8 min to an hour //TODO Configurable
   var time = randRange(480000, 3600000);
   isRunningFlag = true;
   duckHuntTimer = setTimeout(createDuck, time);
