@@ -78,3 +78,4 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+examples/lowdb_example/data/duckhunt_lowdb.json
