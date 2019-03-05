@@ -118,58 +118,62 @@ function assessHitOrMiss(uniqueID, type, date) {
   var fullMessage = callbackResult;
   fullMessage.uniqueID = uniqueID;
   fullMessage.duckMessage = duck_ascii;
-  
-  if(randRange(0, 100) > 30) { 
-    isDuckLoose = false;
-    var seconds = (date.getTime() - duckReleaseTime) / 1000;
-    
-    dbGeneric.increaseScore(type, uniqueID);
-    
-    dbGeneric.getScore(type, uniqueID)
-    .then(function(user_score) {
-        var score = user_score.toString();
-
-        if(isBang) {
-          fullMessage.chat = "@" + uniqueID 
-                    + " shot a duck in **" +  seconds + "** seconds! You have shot " 
-                    + score +" ducks.";
-        } else {          
-          fullMessage.chat = "@" + uniqueID
-                    + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
-                    + score +" ducks.";          
-        }
-
-        //Reset duck status
-        duck_ascii = no_duck;
-        startDuckHunt(callback, dbGeneric);
-        
-        fullMessage.success = true;
-        fullMessage.duckMessage = duck_ascii;
+  return new Promise(function(resolve, reject) {
+    if(randRange(0, 100) > 30) { 
+      isDuckLoose = false;
+      var seconds = (date.getTime() - duckReleaseTime) / 1000;
       
-        
-        callback(fullMessage);
-    })
-    .catch(function(error) {
-        fullMessage.userOnly = "Couldn't find a score for " + uniqueID + "\n" + error;
-        callback(fullMessage);
-    });
+      dbGeneric.increaseScore(type, uniqueID);
+      
+      dbGeneric.getScore(type, uniqueID)
+      .then(function(user_score) {
+          var score = user_score.toString();
 
-  }
-  else
-  {
-    // 30% chance of miss
-    //Put user in timeout
-    dbGeneric.setCooldown("duckCD" + uniqueID, date.getTime());
+          if(isBang) {
+            fullMessage.chat = "@" + uniqueID 
+                      + " shot a duck in **" +  seconds + "** seconds! You have shot " 
+                      + score +" ducks.";
+          } else {          
+            fullMessage.chat = "@" + uniqueID
+                      + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
+                      + score +" ducks.";          
+          }
 
-    //Reply to user
-    var typeChoice = (isBang) ? 
-                     randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
-    fullMessage.chat = "@" + uniqueID + " - ";
-    fullMessage.chat += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
+          //Reset duck status
+          duck_ascii = no_duck;
+          startDuckHunt(callback, dbGeneric);
+          
+          fullMessage.success = true;
+          fullMessage.duckMessage = duck_ascii;
         
-    callback(fullMessage);
-    
-  }
+          
+          //callback(fullMessage);
+          resolve(fullMessage);
+      })
+      .catch(function(error) {
+          fullMessage.userOnly = "Couldn't find a score for " + uniqueID + "\n" + error;
+          //callback(fullMessage);
+          reject(fullMessage);
+      });
+
+    }
+    else
+    {
+      // 30% chance of miss
+      //Put user in timeout
+      dbGeneric.setCooldown("duckCD" + uniqueID, date.getTime());
+
+      //Reply to user
+      var typeChoice = (isBang) ? 
+                       randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
+      fullMessage.chat = "@" + uniqueID + " - ";
+      fullMessage.chat += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
+          
+      //callback(fullMessage);
+      resolve(fullMessage);
+      
+    }
+  });
 }
 
 function handleDuckCommand(uniqueID, type)
@@ -178,39 +182,51 @@ function handleDuckCommand(uniqueID, type)
   fullMessage.uniqueID = uniqueID;
   fullMessage.duckMessage = duck_ascii;
   
-  if(Boolean(isDuckLoose))
-  {
-   // 60% chance of hit
-    var date = new Date();
-    
-    dbGeneric.getCooldown("duckCD" + uniqueID)
-    .then(function(dbCooldown) {
-        var cooldown = (date.getTime() - dbCooldown) / 1000;
-
-        if(cooldown > COOLDOWN_IN_SEC || dbCooldown == null)
-        {
-          return assessHitOrMiss(uniqueID, type, date);
-        }
-        else
-        {
-          fullMessage.userOnly = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
-                    + " seconds.";
-          callback(fullMessage);
-        }
-    })
-    .catch(function(error) {
-      fullMessage.userOnly = "Error handling " + type
-      callback(fullMessage);
-    });
+  return new Promise(function(resolve, reject) {
+    if(Boolean(isDuckLoose))
+    {
+     // 60% chance of hit
+      var date = new Date();
       
-  }
-  else
-  { 
-    // There's no duck to [type]!
-    fullMessage.userOnly = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
-    callback(fullMessage);
-  }
+      dbGeneric.getCooldown("duckCD" + uniqueID)
+      .then(function(dbCooldown) {
+          var cooldown = (date.getTime() - dbCooldown) / 1000;
 
+          if(cooldown > COOLDOWN_IN_SEC || dbCooldown == null)
+          {
+            assessHitOrMiss(uniqueID, type, date)
+            .then(function(result) {
+              resolve(result);
+            })
+            .catch(function(error) {
+              reject(error);
+            });
+            
+          }
+          else
+          {
+            fullMessage.userOnly = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
+                      + " seconds.";
+            //callback(fullMessage);
+            resolve(fullMessage);
+          }
+      })
+      .catch(function(error) {
+        fullMessage.userOnly = "Error handling " + type
+        //callback(fullMessage);
+        reject(fullMessage);
+      });
+        
+    }
+    else
+    { 
+      // There's no duck to [type]!
+      fullMessage.userOnly = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
+     // callback(fullMessage);
+     resolve(fullMessage);
+    }
+    
+  });
 }
 
 //Handle when we get a bang
@@ -228,13 +244,13 @@ function handleFriend(uniqueID)
 //Print out top friend list
 function lookUpFriends(uniqueID)
 {
-  lookUpTable(uniqueID, 'bef');
+  return lookUpTable(uniqueID, 'bef');
 }
 
 //Print out top kill list
 function lookUpKills(uniqueID)
 {
-  lookUpTable(uniqueID, 'bang');
+  return lookUpTable(uniqueID, 'bang');
 }
 
 function lookUpTable(uniqueID, type)
@@ -247,23 +263,27 @@ function lookUpTable(uniqueID, type)
   if(uniqueID) {
     fullMessage.userOnly += " (filter: @" + uniqueID + ") ";
   }
-                                                    
-  dbGeneric.getTopList(type, uniqueID)
-  .then(function(toplist) {
-      for(var i=0;i<toplist.length;i++)
-      {
-        fullMessage.userOnly += toplist[i].id + "(" + toplist[i].score + ")";
-        if( i < toplist.length - 1)
+  return new Promise(function(resolve, reject) {
+    dbGeneric.getTopList(type, uniqueID)
+    .then(function(toplist) {
+        for(var i=0;i<toplist.length;i++)
         {
-          fullMessage.userOnly += ", "
+          fullMessage.userOnly += toplist[i].id + "(" + toplist[i].score + ")";
+          if( i < toplist.length - 1)
+          {
+            fullMessage.userOnly += ", "
+          }
         }
-      }
-      callback(fullMessage);
-  })
-  .catch(function(error) {
-      fullMessage.userOnly += "None yet...";
-      callback(fullMessage);
-  });
+        //callback(fullMessage);
+        resolve(fullMessage);
+    })
+    .catch(function(error) {
+        fullMessage.userOnly += "None yet...";
+        //callback(fullMessage);
+        reject(fullMessage);
+    });
+  });    
+
 }
 
 function startDuckHunt(cb, db)
