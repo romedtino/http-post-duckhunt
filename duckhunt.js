@@ -43,6 +43,16 @@ const commandList = "\nAll duckhunt related commands:\n" +
 const COOLDOWN_IN_SEC = 7;
 
 /**
+* Holds format structure for what will be returned in a promise/callback
+*/
+const callbackResult = { "uniqueID" : "",
+                       "success" : false,
+                       "duckMessage" : duck_ascii,
+                       "chat" : "",
+                       "userOnly" : ""
+};
+
+/**
 * Flag to signify if there's an entity available to capture
 */
 let isDuckLoose = false;
@@ -63,20 +73,16 @@ let duckHuntTimer;
 let isRunningFlag = false;
 
 /**
-* Callback function called when the duckhunt game posts information
+* Callback function called when the duckhunt game summons a duck
 */
 var callback = function () { 
   console.log("Implement me"); 
 };
 
+/**
+* Keeps track of the ascii of the last duck spawned or no duck spawned
+*/
 var duck_ascii = no_duck;
-
-const callbackResult = { "uniqueID" : "",
-                       "success" : false,
-                       "duckMessage" : duck_ascii,
-                       "chat" : "",
-                       "userOnly" : ""
-    };
 
 /**
 * Callback to a generic database to store all the information of the game to.
@@ -147,12 +153,10 @@ function assessHitOrMiss(uniqueID, type, date) {
           fullMessage.duckMessage = duck_ascii;
         
           
-          //callback(fullMessage);
           resolve(fullMessage);
       })
       .catch(function(error) {
           fullMessage.userOnly = "Couldn't find a score for " + uniqueID + "\n" + error;
-          //callback(fullMessage);
           reject(fullMessage);
       });
 
@@ -169,7 +173,6 @@ function assessHitOrMiss(uniqueID, type, date) {
       fullMessage.chat = "@" + uniqueID + " - ";
       fullMessage.chat += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
           
-      //callback(fullMessage);
       resolve(fullMessage);
       
     }
@@ -207,13 +210,11 @@ function handleDuckCommand(uniqueID, type)
           {
             fullMessage.userOnly = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
                       + " seconds.";
-            //callback(fullMessage);
             resolve(fullMessage);
           }
       })
       .catch(function(error) {
         fullMessage.userOnly = "Error handling " + type
-        //callback(fullMessage);
         reject(fullMessage);
       });
         
@@ -222,7 +223,6 @@ function handleDuckCommand(uniqueID, type)
     { 
       // There's no duck to [type]!
       fullMessage.userOnly = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
-     // callback(fullMessage);
      resolve(fullMessage);
     }
     
