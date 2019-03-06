@@ -20,9 +20,8 @@ stopHuntTest = function() {
 defaultRecv = function(duckResults) {
   console.log("DEFAULT RECEIVER: [uniqueID]-" + duckResults.uniqueID);
   console.log("DEFAULT RECEIVER: [success]-" + duckResults.success);
-  console.log("DEFAULT RECEIVER: [duckMessage]-" + duckResults.duckMessage);
-  console.log("DEFAULT RECEIVER: [chat]-" + duckResults.chat);
-  console.log("DEFAULT RECEIVER: [userOnly]-" + duckResults.userOnly);
+  console.log("DEFAULT RECEIVER: [message]-" + duckResults.message);
+  console.log("DEFAULT RECEIVER: [ephemeral]-" + duckResults.ephemeral);
 }
 
 describe('Duckhunt Test', function () {
@@ -46,7 +45,7 @@ describe('Duckhunt Test', function () {
       const data = await assessHitOrMiss("bruce", "bef", new Date());
       defaultRecv(data);
       
-      expect(friendKeys.filter(entry => data.chat.includes(entry))).to.have.lengthOf(1);
+      expect(friendKeys.filter(entry => data.message.includes(entry))).to.have.lengthOf(1);
       stopHuntTest();
       
     });
@@ -62,7 +61,7 @@ describe('Duckhunt Test', function () {
       const data = await assessHitOrMiss("bruce", "bang", new Date());
       defaultRecv(data);
       
-      expect(bangKeys.filter(entry => data.chat.includes(entry))).to.have.lengthOf(1);
+      expect(bangKeys.filter(entry => data.message.includes(entry))).to.have.lengthOf(1);
       stopHuntTest(); 
     });
     
@@ -70,15 +69,15 @@ describe('Duckhunt Test', function () {
       
       const data = await duckhunt.lookUpKills("");
       defaultRecv(data);
-      expect(data.userOnly.includes('Here are people who hate dem ducks')).to.be.true;
+      expect(data.message.includes('Here are people who hate dem ducks')).to.be.true;
     });
     
     it('should return a list of friends', async () => {
 
       const data = await duckhunt.lookUpFriends("bruce");
       defaultRecv(data);
-      expect(data.userOnly.includes('Here are people with duck faced friends')).to.be.true;
-      expect(data.userOnly.includes(',')).to.be.false;
+      expect(data.message.includes('Here are people with duck faced friends')).to.be.true;
+      expect(data.message.includes(',')).to.be.false;
 
     });
     

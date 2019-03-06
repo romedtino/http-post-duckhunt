@@ -47,9 +47,8 @@ const COOLDOWN_IN_SEC = 7;
 */
 const callbackResult = { "uniqueID" : "",
                        "success" : false,
-                       "duckMessage" : duck_ascii,
-                       "chat" : "",
-                       "userOnly" : ""
+                       "ephemeral" : false,
+                       "message" : ""
 };
 
 /**
@@ -114,7 +113,7 @@ function createDuck() {
   var duckNoiseChoice = randRange(0, duck_noise.length);
   var fullMessage = callbackResult;
   duck_ascii = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
-  fullMessage.duckMessage = duck_ascii;
+  fullMessage.message = duck_ascii;
   callback(fullMessage);
 }
 
@@ -123,7 +122,7 @@ function assessHitOrMiss(uniqueID, type, date) {
   
   var fullMessage = callbackResult;
   fullMessage.uniqueID = uniqueID;
-  fullMessage.duckMessage = duck_ascii;
+  fullMessage.message = duck_ascii;
   return new Promise(function(resolve, reject) {
     if(randRange(0, 100) > 30) { 
       isDuckLoose = false;
@@ -136,11 +135,11 @@ function assessHitOrMiss(uniqueID, type, date) {
           var score = user_score.toString();
 
           if(isBang) {
-            fullMessage.chat = "@" + uniqueID 
+            fullMessage.message = "@" + uniqueID 
                       + " shot a duck in **" +  seconds + "** seconds! You have shot " 
                       + score +" ducks.";
           } else {          
-            fullMessage.chat = "@" + uniqueID
+            fullMessage.message = "@" + uniqueID
                       + " befriended a duck in **" +  seconds + "** seconds! You're friends with " 
                       + score +" ducks.";          
           }
@@ -150,13 +149,12 @@ function assessHitOrMiss(uniqueID, type, date) {
           startDuckHunt(callback, dbGeneric);
           
           fullMessage.success = true;
-          fullMessage.duckMessage = duck_ascii;
-        
           
           resolve(fullMessage);
       })
       .catch(function(error) {
-          fullMessage.userOnly = "Couldn't find a score for " + uniqueID + "\n" + error;
+          fullMessage.ephemeral = true;
+          fullMessage.message = "Couldn't find a score for " + uniqueID + "\n" + error;
           reject(fullMessage);
       });
 
@@ -170,8 +168,8 @@ function assessHitOrMiss(uniqueID, type, date) {
       //Reply to user
       var typeChoice = (isBang) ? 
                        randRange(0, miss_bang.length) : randRange(0, miss_friend.length);
-      fullMessage.chat = "@" + uniqueID + " - ";
-      fullMessage.chat += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
+      fullMessage.message = "@" + uniqueID + " - ";
+      fullMessage.message += (isBang) ? miss_bang[typeChoice] : miss_friend[typeChoice];
           
       resolve(fullMessage);
       
@@ -183,7 +181,6 @@ function handleDuckCommand(uniqueID, type)
 {  
   var fullMessage = callbackResult;
   fullMessage.uniqueID = uniqueID;
-  fullMessage.duckMessage = duck_ascii;
   
   return new Promise(function(resolve, reject) {
     if(Boolean(isDuckLoose))
@@ -208,22 +205,22 @@ function handleDuckCommand(uniqueID, type)
           }
           else
           {
-            fullMessage.userOnly = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
+            fullMessage.ephemeral = true;
+            fullMessage.message = "You are in a cool down period, try again in " + (COOLDOWN_IN_SEC - cooldown) 
                       + " seconds.";
             resolve(fullMessage);
           }
       })
       .catch(function(error) {
-        fullMessage.userOnly = "Error handling " + type
-        reject(fullMessage);
+        reject( "Error handling " + type + " with error: " + error);
       });
         
     }
     else
     { 
       // There's no duck to [type]!
-      fullMessage.userOnly = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
-     resolve(fullMessage);
+      fullMessage.message = "@" + uniqueID + " " + ((type.indexOf('bang') > -1) ? miss_bang_noduck : miss_friend_noduck);
+      resolve(fullMessage);
     }
     
   });
@@ -256,30 +253,29 @@ function lookUpKills(uniqueID)
 function lookUpTable(uniqueID, type)
 {
   var fullMessage = callbackResult;
+  fullMessage.ephemeral = true;
   
   var isBang = type.indexOf('bang') > -1;
-  fullMessage.userOnly = (isBang) ? "Here are people who hate dem ducks - " :
+  fullMessage.message = (isBang) ? "Here are people who hate dem ducks - " :
                                                     "Here are people with duck faced friends - ";
   if(uniqueID) {
-    fullMessage.userOnly += " (filter: @" + uniqueID + ") ";
+    fullMessage.message += " (filter: @" + uniqueID + ") ";
   }
   return new Promise(function(resolve, reject) {
     dbGeneric.getTopList(type, uniqueID)
     .then(function(toplist) {
         for(var i=0;i<toplist.length;i++)
         {
-          fullMessage.userOnly += toplist[i].id + "(" + toplist[i].score + ")";
+          fullMessage.message += toplist[i].id + "(" + toplist[i].score + ")";
           if( i < toplist.length - 1)
           {
-            fullMessage.userOnly += ", "
+            fullMessage.message += ", "
           }
         }
-        //callback(fullMessage);
         resolve(fullMessage);
     })
     .catch(function(error) {
-        fullMessage.userOnly += "None yet...";
-        //callback(fullMessage);
+        fullMessage.message += "None yet...";
         reject(fullMessage);
     });
   });    
