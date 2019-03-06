@@ -25,10 +25,6 @@ defaultRecv = function(duckResults) {
   console.log("DEFAULT RECEIVER: [userOnly]-" + duckResults.userOnly);
 }
 
-setDefaultRecv = function(duckhunt) {
-  duckhunt.__set__('callback', defaultRecv);
-}
-
 describe('Duckhunt Test', function () {
   describe('startDuckHunt-valid', function() {
     
@@ -48,6 +44,7 @@ describe('Duckhunt Test', function () {
       
       let assessHitOrMiss = duckhunt.__get__('assessHitOrMiss')
       const data = await assessHitOrMiss("bruce", "bef", new Date());
+      defaultRecv(data);
       
       expect(friendKeys.filter(entry => data.chat.includes(entry))).to.have.lengthOf(1);
       stopHuntTest();
@@ -63,6 +60,7 @@ describe('Duckhunt Test', function () {
       
       let assessHitOrMiss = duckhunt.__get__('assessHitOrMiss')
       const data = await assessHitOrMiss("bruce", "bang", new Date());
+      defaultRecv(data);
       
       expect(bangKeys.filter(entry => data.chat.includes(entry))).to.have.lengthOf(1);
       stopHuntTest(); 
@@ -71,12 +69,14 @@ describe('Duckhunt Test', function () {
     it('should return a list of killers', async () => {
       
       const data = await duckhunt.lookUpKills("");
+      defaultRecv(data);
       expect(data.userOnly.includes('Here are people who hate dem ducks')).to.be.true;
     });
     
     it('should return a list of friends', async () => {
 
       const data = await duckhunt.lookUpFriends("bruce");
+      defaultRecv(data);
       expect(data.userOnly.includes('Here are people with duck faced friends')).to.be.true;
       expect(data.userOnly.includes(',')).to.be.false;
 
