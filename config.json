@@ -1,0 +1,11 @@
+{
+    "user_cooldown" : {
+      "_comment_" : "Specifies the duration in seconds how long to put a user in a cooldown after missing a bang/bef",
+      "cooldown" : "7"
+    },
+    "spawn_times" : {
+      "_comment_" : "The range in milliseconds of when to spawn a duck",
+      "min" : "480000",
+      "max" : "3600000"
+    }
+}
