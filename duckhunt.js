@@ -81,11 +81,6 @@ var callback = function () {
 };
 
 /**
-* Keeps track of the ascii of the last duck spawned or no duck spawned
-*/
-var duck_ascii = no_duck;
-
-/**
 * Callback to a generic database to store all the information of the game to.
 * Requires these functions to be implemented which return Promises: 
 * getTopList(type) - returns map of ids and scores [ id0 : score1, id1: score2] SORTED by highest score
@@ -114,8 +109,8 @@ function createDuck() {
   var duckChoice = randRange(0, duck.length);
   var duckNoiseChoice = randRange(0, duck_noise.length);
   var fullMessage = JSON.parse(JSON.stringify(callbackResult));
-  duck_ascii = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
-  fullMessage.message = duck_ascii;
+  module.exports.duck_ascii = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
+  fullMessage.message = module.exports.duck_ascii;
   callback(fullMessage);
 }
 
@@ -124,7 +119,6 @@ function assessHitOrMiss(uniqueID, type, date) {
   
   var fullMessage = JSON.parse(JSON.stringify(callbackResult));
   fullMessage.uniqueID = uniqueID;
-  fullMessage.message = duck_ascii;
   return new Promise(function(resolve, reject) {
     if(randRange(0, 100) > 30) { 
       isDuckLoose = false;
@@ -147,7 +141,7 @@ function assessHitOrMiss(uniqueID, type, date) {
           }
 
           //Reset duck status
-          duck_ascii = no_duck;
+          module.exports.duck_ascii = no_duck;
           startDuckHunt(callback, dbGeneric);
           
           fullMessage.success = true;
@@ -314,4 +308,4 @@ module.exports.lookUpKills = lookUpKills;
 module.exports.commandList = commandList;
 module.exports.instructions = instructions;
 module.exports.isRunning = isRunning;
-module.exports.duck_ascii = duck_ascii;
+module.exports.duck_ascii = no_duck;
