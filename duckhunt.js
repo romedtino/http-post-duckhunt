@@ -111,7 +111,7 @@ function createDuck() {
   duckReleaseTime = date.getTime();
   var duckChoice = randRange(0, duck.length);
   var duckNoiseChoice = randRange(0, duck_noise.length);
-  var fullMessage = callbackResult;
+  var fullMessage = JSON.parse(JSON.stringify(callbackResult));
   duck_ascii = duck_tail + duck[duckChoice] + duck_noise[duckNoiseChoice];
   fullMessage.message = duck_ascii;
   callback(fullMessage);
@@ -120,7 +120,7 @@ function createDuck() {
 function assessHitOrMiss(uniqueID, type, date) {
   var isBang = type.indexOf('bang') > -1;
   
-  var fullMessage = callbackResult;
+  var fullMessage = JSON.parse(JSON.stringify(callbackResult));
   fullMessage.uniqueID = uniqueID;
   fullMessage.message = duck_ascii;
   return new Promise(function(resolve, reject) {
@@ -179,7 +179,7 @@ function assessHitOrMiss(uniqueID, type, date) {
 
 function handleDuckCommand(uniqueID, type)
 {  
-  var fullMessage = callbackResult;
+  var fullMessage = JSON.parse(JSON.stringify(callbackResult));
   fullMessage.uniqueID = uniqueID;
   
   return new Promise(function(resolve, reject) {
@@ -252,7 +252,7 @@ function lookUpKills(uniqueID)
 
 function lookUpTable(uniqueID, type)
 {
-  var fullMessage = callbackResult;
+  var fullMessage = JSON.parse(JSON.stringify(callbackResult));
   fullMessage.ephemeral = true;
   
   var isBang = type.indexOf('bang') > -1;
