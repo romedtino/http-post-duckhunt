@@ -314,3 +314,4 @@ module.exports.lookUpKills = lookUpKills;
 module.exports.commandList = commandList;
 module.exports.instructions = instructions;
 module.exports.isRunning = isRunning;
+module.exports.duck_ascii = duck_ascii;
