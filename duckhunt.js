@@ -1,3 +1,5 @@
+const config = require('./config.json');
+
 const duck_tail = "・゜゜・。。・゜゜";
 const no_duck = '¯\\_(ツ)_/¯';
 const duck = ["\_o< ", 
@@ -40,7 +42,7 @@ const commandList = "\nAll duckhunt related commands:\n" +
 /**
 * Cooldown for people who spam right after missing a shot (seconds)
 */
-const COOLDOWN_IN_SEC = 7;
+const COOLDOWN_IN_SEC = config.user_cooldown.cooldown;
 
 /**
 * Holds format structure for what will be returned in a promise/callback
@@ -288,7 +290,7 @@ function startDuckHunt(cb, db)
   dbGeneric = db;
   
   //Between 8 min to an hour //TODO Configurable
-  var time = randRange(480000, 3600000);
+  var time = randRange(config.spawn_times.min, config.spawn_times.max);
   isRunningFlag = true;
   duckHuntTimer = setTimeout(createDuck, time);
   
