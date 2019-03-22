@@ -3,7 +3,8 @@ const duckDB = require('../duckhunt_lowdb.js')("test");
 const expect = require('chai').expect;
 const should = require('chai').should;
 
-var duckhunt = rewire('../../../duckhunt.js');
+var duckhunt = rewire('../../../duckhunt.js')();
+const config = require('../../../config.json');
 
 // TODO take advantage for test?
 //const express = require('express');
@@ -13,7 +14,7 @@ var duckhunt = rewire('../../../duckhunt.js');
 //});
 
 stopHuntTest = function() {
-  duckhunt.stopDuckHunt();
+  duckhunt.stopHunt();
   expect(duckhunt.isRunning()).to.be.false;
 }
 
@@ -25,24 +26,21 @@ defaultRecv = function(duckResults) {
 }
 
 describe('Duckhunt Test', function () {
-  describe('startDuckHunt-valid', function() {
+  describe('startHunt-valid', function() {
     
     it('should start the duck hunt game correctly', function () {
       
-      duckhunt.startDuckHunt(defaultRecv, duckDB);
+      duckhunt.startHunt(defaultRecv, duckDB);
       expect(duckhunt.isRunning()).to.be.true;
       stopHuntTest();
     });
     
     it('should try to befriend an entity',  async () => {
-      let friendKeys = duckhunt.__get__('miss_friend');
+      let friendKeys = config.executions.find(entry => entry.command === "bef").miss;
       friendKeys.push(["You're friends with"]);
       
-      let createDuck = duckhunt.__get__('createDuck');
-      createDuck();
-      
-      let assessHitOrMiss = duckhunt.__get__('assessHitOrMiss')
-      const data = await assessHitOrMiss("bruce", "bef", new Date());
+      duckhunt.createEntity();
+      const data = await duckhunt.handleExecution("bef", "bruce", true);
       defaultRecv(data);
       
       expect(friendKeys.filter(entry => data.message.includes(entry))).to.have.lengthOf(1);
@@ -51,14 +49,12 @@ describe('Duckhunt Test', function () {
     });
     
     it('should try to kill an entity', async () => {
-      let  bangKeys = duckhunt.__get__('miss_bang');
+      let  bangKeys = config.executions.find(entry => entry.command === "bang").miss;
       bangKeys.push(["You have shot"]);
       
-      let createDuck = duckhunt.__get__('createDuck');
-      createDuck();
+      duckhunt.createEntity();
       
-      let assessHitOrMiss = duckhunt.__get__('assessHitOrMiss')
-      const data = await assessHitOrMiss("bruce", "bang", new Date());
+      const data = await duckhunt.handleExecution("bang", "bruce", true);
       defaultRecv(data);
       
       expect(bangKeys.filter(entry => data.message.includes(entry))).to.have.lengthOf(1);
@@ -67,14 +63,14 @@ describe('Duckhunt Test', function () {
     
     it('should return a list of killers', async () => {
       
-      const data = await duckhunt.lookUpKills("");
+      const data = await duckhunt.lookUpTable("", "bang");
       defaultRecv(data);
       expect(data.message.includes('Here are people who hate dem ducks')).to.be.true;
     });
     
     it('should return a list of friends', async () => {
 
-      const data = await duckhunt.lookUpFriends("bruce");
+      const data = await duckhunt.lookUpTable("bruce", "bef");
       defaultRecv(data);
       expect(data.message.includes('Here are people with duck faced friends')).to.be.true;
       expect(data.message.includes(',')).to.be.false;

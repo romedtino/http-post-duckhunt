@@ -39,15 +39,21 @@ module.exports = function(dbName) {
       ]
     }
   **/
-  db.defaults({ "bang" : [],
-      "bef": [],
+  db.defaults({
       "cooldown": []
     })
     .write();
 
+  var checkAndCreate = function(type) {
+    if(!db.has(type).value()) {
+      db.set(type, []).write();
+    }
+  }
+
   var getTopList = function(type, uniqueID) {
     return new Promise(function(resolve, reject) { 
         var match;
+        checkAndCreate(type);
         if(uniqueID) {
           match = db.get(type)
                       .filter({"id": uniqueID})
@@ -55,8 +61,8 @@ module.exports = function(dbName) {
                       .value();
         } else {
           match = db.get(type)
-                      .sortBy("score")
-                      .value();
+                    .sortBy("score")
+                    .value();
         }
         if(Array.isArray(match) && match.length) {
           //sortBy sorts in ascending order. We want it descending
@@ -98,6 +104,7 @@ module.exports = function(dbName) {
   }
 
   var increaseScore = function(type, uniqueID) {
+    checkAndCreate(type);
     var match = db.get(type)
                 .filter({"id": uniqueID})
                 .value();
@@ -122,6 +129,7 @@ module.exports = function(dbName) {
 
   var getScore = function(type, uniqueID) {
     return new Promise(function(resolve, reject) {
+        checkAndCreate(type);
         var idList = db.get(type)
           .filter({"id": uniqueID})
           .value();
