@@ -1,5 +1,5 @@
 const rewire = require('rewire');
-const duckDB = require('../duckhunt_lowdb.js');
+const duckDB = require('../duckhunt_lowdb.js')("test");
 const expect = require('chai').expect;
 const should = require('chai').should;
 
