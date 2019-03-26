@@ -253,6 +253,7 @@ module.exports = function(customConfig=null) {
   module.instructions = config.instructions;
   module.isRunning = isRunning;
   module.entity_ascii = config.custom_entity_ascii.no_entity;
+  module.executions = config.executions;
 
   return module;
 }
