@@ -13,16 +13,12 @@ module.exports = function(customConfig=null) {
   */
   function callbackResult() { 
     return { "uniqueID" : "",
+                        "loose" : module.isEntityLoose,
                         "success" : false,
                         "ephemeral" : false,
                         "message" : ""
            };
 }
-
-  /**
-  * Flag to signify if there's an entity available to capture
-  */
-  let isEntityLoose = false;
 
   /**
   * Time in epoch we released an entity
@@ -69,7 +65,7 @@ module.exports = function(customConfig=null) {
   * Spawn an entity and pass the information to callback
   */           
   function createEntity() {
-    isEntityLoose = true;
+    module.isEntityLoose = true;
     var date = new Date();
     entityReleaseTime = date.getTime();
     
@@ -90,7 +86,7 @@ module.exports = function(customConfig=null) {
     fullMessage.uniqueID = uniqueID;
     return new Promise(function(resolve, reject) {
       if(randRange(0, 100) > 30 || forceExecute) { 
-        isEntityLoose = false;
+        module.isEntityLoose = false;
         var seconds = (date.getTime() - entityReleaseTime) / 1000;
         
         dbGeneric.increaseScore(type, uniqueID);
@@ -105,6 +101,7 @@ module.exports = function(customConfig=null) {
                             .replace("${time}", seconds + " seconds!")
                             .replace("${score}", score);
             fullMessage.message = hitText;
+            fullMessage.loose = module.isEntityLoose;
 
             //Reset duck status
             module.entity_ascii = config.custom_entity_ascii.no_entity;
@@ -146,7 +143,7 @@ module.exports = function(customConfig=null) {
     fullMessage.uniqueID = uniqueID;
     
     return new Promise(function(resolve, reject) {
-      if(Boolean(isEntityLoose))
+      if(Boolean(module.isEntityLoose))
       {
       // 60% chance of hit
         var date = new Date();
@@ -254,6 +251,7 @@ module.exports = function(customConfig=null) {
   module.isRunning = isRunning;
   module.entity_ascii = config.custom_entity_ascii.no_entity;
   module.executions = config.executions;
+  module.isEntityLoose = false;
 
   return module;
 }
