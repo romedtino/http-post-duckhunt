@@ -5,8 +5,8 @@
     },
     "spawn_times" : {
       "_comment_" : "The range in milliseconds of when to spawn a duck",
-      "min" : "480000",
-      "max" : "3600000"
+      "min" : "10000",
+      "max" : "60000"
     },
     "custom_entity_ascii" : { 
       "_comment_" : "Concatenates the arrays to form an entity iterating through the array of arrays. The inner array is randomized.",
@@ -28,7 +28,7 @@
           "hit" : ["${user} shot a duck in **${time}** You have shot ${score} ducks."],
           "list_text" : "Here are people who hate dem ducks - ${list}"
         },
-        { "command" : "bef",
+        { "command" : "befriend",
           "no_entity" : ["@${user} tried befriending a non-existent duck, that's freaking creepy."],
           "miss" :[ "The duck didn't want to be friends, maybe next time.", 
                     "Well this is awkward, the duck needs to think about it.", 

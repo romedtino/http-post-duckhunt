@@ -191,9 +191,11 @@ module.exports = function(customConfig=null) {
   function lookUpTable(uniqueID, type)
   {
     var fullMessage = callbackResult();
+    fullMessage.raw = [];
     fullMessage.ephemeral = true;
     
-    var listText = config.executions.find( entry => entry.command === type ).list_text;
+   var listText = config.executions.find( entry => entry.command === type ).list_text;
+   fullMessage.listText = listText.replace("${list}", "");
    if(uniqueID) {
     listText += " (filter: @" + uniqueID + ") ";
     }
@@ -204,6 +206,8 @@ module.exports = function(customConfig=null) {
           for(var i=0;i<toplist.length;i++)
           {
             userList += toplist[i].id + "(" + toplist[i].score + ")";
+            fullMessage.raw.push({ "id": toplist[i].id,
+                                "score" : toplist[i].score });
             if( i < toplist.length - 1)
             {
               userList += ", "
@@ -215,7 +219,7 @@ module.exports = function(customConfig=null) {
       })
       .catch(function(error) {
           fullMessage.message = listText.replace("${list}",  "None yet...");;
-          reject(fullMessage);
+          resolve(fullMessage);
       });
     });    
 
