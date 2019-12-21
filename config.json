@@ -15,7 +15,8 @@
         ["\\_o< ", "\\_O< ",  "\\_0< ", "\\_\u00f6< ", "\\_\u00f8< ", "\\_\u00f3< "],
         ["QUACK!", "FLAP FLAP!", "quack!"]
       ],
-      "no_entity" : "¯\\_(ツ)_/¯"
+      "no_entity" : "¯\\_(ツ)_/¯",
+      "url" : ""
     },
     "executions" : [ 
         { "command" : "bang",

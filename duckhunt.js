@@ -256,6 +256,6 @@ module.exports = function(customConfig=null) {
   module.entity_ascii = config.custom_entity_ascii.no_entity;
   module.executions = config.executions;
   module.isEntityLoose = false;
-
+  module.url = config.custom_entity_ascii.url;
   return module;
 }
